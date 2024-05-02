@@ -1,0 +1,8 @@
+export function mapPokemon(data: Record<string, any>) {
+  return {
+    name: data.name,
+    image: data.sprites.other.dream_world.front_default,
+    id: data.id,
+    moves: data.moves.map(({ move }: any) => move.name),
+  }
+}
