@@ -1,25 +1,9 @@
 import { PokemonDialog } from "@/components/PokemonDialog";
-import { PokemonData, PokemonProvider } from "@/contexts/pokemon";
-import { useQuery } from "@/hooks/useQuery";
-import { mapPokemon } from "@/utils/pokemon-mapper";
+import { PokemonProvider } from "@/contexts/pokemon";
+import { usePokemonList } from "@/hooks/usePokemonList";
 
 export function PokemonList() {
-  const { data: pokemonList } = useQuery({
-    key: "pokemon-list",
-    get: () => {
-      const pokemonListPromises: Promise<PokemonData>[] = [];
-
-      for (let i = 1; i <= 50; i++) {
-        pokemonListPromises.push(
-          fetch(`https://pokeapi.co/api/v2/pokemon/${i}`)
-            .then((res) => res.json())
-            .then(mapPokemon)
-        );
-      }
-
-      return Promise.all(pokemonListPromises);
-    },
-  });
+  const { data: pokemonList } = usePokemonList();
 
   return (
     <>

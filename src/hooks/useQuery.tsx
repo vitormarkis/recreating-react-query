@@ -8,11 +8,23 @@ export function useQuery<T>(config: QueriesDataCreateProps<T>) {
   useEffect(() => {
     queries.create<T>({
       ...config,
+      onPromiseStateChange(state) {
+        switch (state) {
+          case "fulfilled":
+            break;
+          case "pending":
+            setData(null);
+            break;
+          case "reject":
+            setData(null);
+            break;
+        }
+      },
       onSuccess(resData) {
         setData(resData);
         config.onSuccess?.(resData);
       },
     });
-  }, []);
+  }, [config]);
   return { data };
 }

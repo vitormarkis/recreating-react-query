@@ -4,11 +4,17 @@ export type QueriesDataCreateProps<T> = {
   key: string;
   get(): Promise<T>;
   onSuccess?(data: T): void;
+  onPromiseStateChange?(state: "pending" | "reject" | "fulfilled"): void;
 };
 
 type Queries = {
   getQuery<T>(key: string): T | null;
   create<T>({ key, get }: QueriesDataCreateProps<T>): void;
+};
+
+type Query<T> = {
+  data: T | null;
+  promise: Promise<T> | null;
 };
 
 export const QueriesContext = createContext<null | Queries>(null);
@@ -18,20 +24,47 @@ export const QueriesProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const values = useRef(new Map());
+  const values = useRef<Record<string, Query<any>>>({});
+
+  Object.assign(window, { __getQueryData: values.current });
 
   const value: Queries = {
     getQuery(key) {
-      const query = values.current.get(key);
-      return query ?? null;
+      const query = values.current[key];
+      return query?.data ?? null;
     },
-    create({ key, get, onSuccess }) {
-      const query = values.current.get(key);
-      if (query) return onSuccess?.(query);
-      get().then((res) => {
-        values.current.set(key, res);
-        onSuccess?.(res);
-      });
+    create({ key, get, onSuccess, onPromiseStateChange }) {
+      let query = values.current[key];
+      if (query?.data) return onSuccess?.(query.data);
+
+      if (!query) {
+        values.current[key] = {
+          data: null,
+          promise: null,
+        };
+      }
+
+      query = values.current[key];
+
+      if (query && !query.promise) {
+        onPromiseStateChange?.("pending");
+        values.current[key].promise = get();
+      }
+
+      const promise = values.current[key].promise!;
+
+      promise
+        .then((data) => {
+          onPromiseStateChange?.("fulfilled");
+          values.current[key] = {
+            data,
+            promise: null,
+          };
+          onSuccess?.(data);
+        })
+        .catch(() => {
+          onPromiseStateChange?.("reject");
+        });
       return values.current;
     },
   };
@@ -46,3 +79,11 @@ export const useQueries = () => {
   if (!queries) throw new Error("OOC");
   return queries;
 };
+
+function promiseState(p: Promise<any>) {
+  const t = {};
+  return Promise.race([p, t]).then(
+    (v) => (v === t ? ("pending" as const) : ("fulfilled" as const)),
+    () => "rejected" as const
+  );
+}
