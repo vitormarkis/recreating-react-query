@@ -3,9 +3,14 @@ import { useEffect, useState } from "react";
 
 export function useQuery<T>(config: QueriesDataCreateProps<T>) {
   const queries = useQueries();
-  const [data, setData] = useState<null | T>(queries.getQuery(config.key));
+  const queryData = queries.getQuery(config.key) as T;
+  const [data, setData] = useState<undefined | T>(queryData);
+
+  config.enabled ??= true;
 
   useEffect(() => {
+    if (!config.enabled) return;
+
     queries.create<T>({
       ...config,
       onPromiseStateChange(state) {
@@ -13,10 +18,10 @@ export function useQuery<T>(config: QueriesDataCreateProps<T>) {
           case "fulfilled":
             break;
           case "pending":
-            setData(null);
+            setData(undefined);
             break;
           case "reject":
-            setData(null);
+            setData(undefined);
             break;
         }
       },
@@ -26,5 +31,5 @@ export function useQuery<T>(config: QueriesDataCreateProps<T>) {
       },
     });
   }, [config]);
-  return { data };
+  return { data: data ?? config.fallbackData };
 }

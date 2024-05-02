@@ -2,22 +2,20 @@ import { useQuery } from "@/hooks/useQuery";
 import { mapPokemon } from "@/utils/pokemon-mapper";
 import { Link, LoaderFunctionArgs, useLoaderData } from "react-router-dom";
 
+export const getPokemon = (pokemonId: string) =>
+  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`).then((res) => {
+    if (!res.ok) {
+      return null;
+    }
+    return res.json().then((pokemon) => mapPokemon(pokemon));
+  });
+
 export async function loader({ params }: LoaderFunctionArgs) {
   const { pokemonId } = params;
-  const getPokemon = () =>
-    fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`).then((res): any => {
-      if (!res.ok) {
-        return { error: true, pokemon: null };
-      }
-      return res.json().then((pokemon) => ({
-        error: false,
-        pokemon: mapPokemon(pokemon),
-      }));
-    });
 
   return {
     pokemonId,
-    getPokemon,
+    getPokemon: () => getPokemon(pokemonId!),
   };
 }
 

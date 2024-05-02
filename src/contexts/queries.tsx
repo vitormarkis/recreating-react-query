@@ -5,6 +5,8 @@ export type QueriesDataCreateProps<T> = {
   get(): Promise<T>;
   onSuccess?(data: T): void;
   onPromiseStateChange?(state: "pending" | "reject" | "fulfilled"): void;
+  enabled?: boolean;
+  fallbackData?: T
 };
 
 type Queries = {
@@ -31,7 +33,7 @@ export const QueriesProvider = ({
   const value: Queries = {
     getQuery(key) {
       const query = values.current[key];
-      return query?.data ?? null;
+      return query?.data ?? undefined;
     },
     create({ key, get, onSuccess, onPromiseStateChange }) {
       let query = values.current[key];
@@ -39,7 +41,7 @@ export const QueriesProvider = ({
 
       if (!query) {
         values.current[key] = {
-          data: null,
+          data: undefined,
           promise: null,
         };
       }

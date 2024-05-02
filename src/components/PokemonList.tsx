@@ -1,5 +1,4 @@
 import { PokemonDialog } from "@/components/PokemonDialog";
-import { PokemonProvider } from "@/contexts/pokemon";
 import { usePokemonList } from "@/hooks/usePokemonList";
 
 export function PokemonList() {
@@ -11,14 +10,16 @@ export function PokemonList() {
       <div className="flex flex-wrap gap-4">
         {pokemonList
           ? pokemonList.map((pokemon) => (
-              <PokemonProvider key={pokemon.name} value={pokemon}>
-                <PokemonDialog>
-                  <button className="flex flex-col gap-2">
-                    <img className="size-20" src={pokemon.image} />
-                    <p>{pokemon.name}</p>
-                  </button>
-                </PokemonDialog>
-              </PokemonProvider>
+              <PokemonDialog
+                pokemonData={pokemon}
+                pokemonId={pokemon.id}
+                key={pokemon.id}
+              >
+                <button className="flex flex-col gap-2">
+                  <img className="size-20" src={pokemon.image} />
+                  <p>{pokemon.name}</p>
+                </button>
+              </PokemonDialog>
             ))
           : "Loading"}
       </div>
