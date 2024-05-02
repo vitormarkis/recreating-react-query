@@ -1,9 +1,7 @@
 import { PokemonList } from "./components/PokemonList"
 
 function App() {
-  return (
-    <PokemonList />
-  )
+  return <PokemonList />
 }
 
 export default App

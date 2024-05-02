@@ -1,5 +1,5 @@
-import { QueriesDataCreateProps, useQueries } from "@/__query_package__/queries"
 import { useEffect, useState } from "react"
+import { QueriesDataCreateProps, useQueries } from "./queries"
 
 export function useQuery<T>(config: QueriesDataCreateProps<T>) {
   const queries = useQueries()
