@@ -1,10 +1,10 @@
-import App from "@/App";
-import { QueriesProvider } from "@/contexts/queries";
-import { PokemonPage, loader as pokemonPageLoader } from "@/pages/PokemonPage";
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import "./index.css";
+import App from "@/App"
+import { QueriesProvider } from "@/__query_package__/queries"
+import { PokemonPage, loader as pokemonPageLoader } from "@/pages/PokemonPage"
+import React from "react"
+import ReactDOM from "react-dom/client"
+import { RouterProvider, createBrowserRouter } from "react-router-dom"
+import "./index.css"
 
 const router = createBrowserRouter([
   {
@@ -16,7 +16,7 @@ const router = createBrowserRouter([
     element: <PokemonPage />,
     loader: pokemonPageLoader,
   },
-]);
+])
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -24,4 +24,4 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <RouterProvider router={router} />
     </QueriesProvider>
   </React.StrictMode>
-);
+)

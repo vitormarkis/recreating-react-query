@@ -1,25 +1,25 @@
+import { useQuery } from "@/__query_package__/useQuery"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { PokemonData } from "@/contexts/pokemon";
-import { useQuery } from "@/hooks/useQuery";
+} from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { PokemonData } from "@/contexts/pokemon"
 
-import { cn } from "@/lib/utils";
-import { getPokemon } from "@/pages/PokemonPage";
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils"
+import { getPokemon } from "@/pages/PokemonPage"
+import React, { useState } from "react"
+import { Link } from "react-router-dom"
 
 export type PokemonDialogProps = React.ComponentPropsWithoutRef<
   typeof DialogContent
 > & {
-  pokemonId: string;
-  pokemonData?: PokemonData;
-};
+  pokemonId: string
+  pokemonData?: PokemonData
+}
 
 export const PokemonDialog = React.forwardRef<
   React.ElementRef<typeof DialogContent>,
@@ -28,30 +28,37 @@ export const PokemonDialog = React.forwardRef<
   { pokemonData, pokemonId, children, className, ...props },
   ref
 ) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
 
   const { data: pokemon } = useQuery({
     key: `pokemon-${pokemonId}`,
     get: () => getPokemon(pokemonId),
     enabled: isOpen,
     fallbackData: pokemonData,
-  });
+  })
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={setIsOpen}
+    >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent ref={ref} className={cn("flex", className)} {...props}>
+      <DialogContent
+        ref={ref}
+        className={cn("flex", className)}
+        {...props}
+      >
         {pokemon ? (
           <>
-            <DialogHeader className="flex-1 pr-3 border-r mr-3">
+            <DialogHeader className="mr-3 flex-1 border-r pr-3">
               <DialogTitle>{pokemon.name}</DialogTitle>
               <h3 className="ml-2 font-semibold">Moves</h3>
               <ScrollArea className="h-[24rem] rounded-md p-4">
-                <div className="flex gap-2 flex-wrap">
-                  {pokemon.moves.map((move) => (
+                <div className="flex flex-wrap gap-2">
+                  {pokemon.moves.map(move => (
                     <span
                       key={move}
-                      className="text-sm/none px-1 py-0.5 rounded bg-neutral-200 text-neutral-800"
+                      className="rounded bg-neutral-200 px-1 py-0.5 text-sm/none text-neutral-800"
                     >
                       {move}
                     </span>
@@ -64,7 +71,7 @@ export const PokemonDialog = React.forwardRef<
               <div className="pt-4">
                 <Link
                   to={`/pokemons/${pokemon.id}`}
-                  className="w-full h-9 flex items-center bg-neutral-200 hover:bg-neutral-300 transition-all duration-300 justify-center"
+                  className="flex h-9 w-full items-center justify-center bg-neutral-200 transition-all duration-300 hover:bg-neutral-300"
                 >
                   Ver mais
                 </Link>
@@ -76,5 +83,5 @@ export const PokemonDialog = React.forwardRef<
         )}
       </DialogContent>
     </Dialog>
-  );
-});
+  )
+})
