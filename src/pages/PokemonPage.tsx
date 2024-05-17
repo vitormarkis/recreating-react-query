@@ -3,7 +3,7 @@ import { mapPokemon } from "@/utils/pokemon-mapper"
 import { Link, LoaderFunctionArgs, useLoaderData } from "react-router-dom"
 
 export const getPokemon = (pokemonId: string) =>
-  fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`).then(res => {
+  fetch(`https://pokeapi.co/api/v2/posdsdfkemon/${pokemonId}`).then(res => {
     if (!res.ok) {
       return null
     }

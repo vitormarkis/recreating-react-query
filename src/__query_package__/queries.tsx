@@ -4,13 +4,15 @@ export type QueriesDataCreateProps<T> = {
   key: string
   get(): Promise<T>
   onSuccess?(data: T): void
-  onPromiseStateChange?(state: "pending" | "reject" | "fulfilled"): void
+  onError?(error: Error): void
+  onInitiateQuery?(): void
+  onPromiseStateChange?(state: "pending" | "rejected" | "fulfilled"): void
   enabled?: boolean
   fallbackData?: T
 }
 
 type Queries = {
-  getQuery<T>(key: string): T | null
+  getQuery<T = any>(key: string): T | null
   create<T>({ key, get }: QueriesDataCreateProps<T>): void
 }
 
@@ -35,9 +37,9 @@ export const QueriesProvider = ({
       const query = values.current[key]
       return query?.data ?? undefined
     },
-    create({ key, get, onSuccess, onPromiseStateChange }) {
+    create({ key, get, ...cb }) {
       let query = values.current[key]
-      if (query?.data) return onSuccess?.(query.data)
+      if (query?.data) return cb.onSuccess?.(query.data)
 
       if (!query) {
         values.current[key] = {
@@ -49,23 +51,25 @@ export const QueriesProvider = ({
       query = values.current[key]
 
       if (query && !query.promise) {
-        onPromiseStateChange?.("pending")
+        cb.onPromiseStateChange?.("pending")
         values.current[key].promise = get()
       }
 
       const promise = values.current[key].promise!
 
+      cb.onInitiateQuery?.()
       promise
         .then(data => {
-          onPromiseStateChange?.("fulfilled")
+          cb.onPromiseStateChange?.("fulfilled")
+          cb.onSuccess?.(data)
           values.current[key] = {
             data,
             promise: null,
           }
-          onSuccess?.(data)
         })
-        .catch(() => {
-          onPromiseStateChange?.("reject")
+        .catch(error => {
+          cb.onError?.(error as Error)
+          cb.onPromiseStateChange?.("rejected")
         })
       return values.current
     },
