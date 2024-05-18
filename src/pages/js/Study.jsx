@@ -1,15 +1,28 @@
-import { useEffect, useReducer, useState } from "react"
-import { getPokemon, initQuery } from "./Study.utils"
+import { useEffect, useReducer, useState, useSyncExternalStore } from "react"
 import { QueryProvider, useQuery } from "./context"
 
+async function getPokemon() {
+  const response = await fetch("https://pokeapi.co/api/v2/pokemon/1")
+  if (Math.random() > 0.7) throw new Error("Expected error.")
+  return response.json()
+}
+
 class QueryClient {
-  observers = []
+  observers = new Set()
   promiseState = "iddle"
-  state = initQuery()
+  state = {
+    data: undefined,
+    error: null,
+    isLoading: false,
+  }
 
   constructor(promise) {
     this.runPromise = promise
     void this.refetch()
+  }
+
+  getState() {
+    return this.state
   }
 
   async refetch() {
@@ -40,19 +53,19 @@ class QueryClient {
   }
 
   subscribe(cb) {
-    this.observers.push(cb)
-    return () => this.observers.splice(this.observers.indexOf(cb), 1)
+    this.observers.add(cb)
+    return () => this.observers.delete(cb)
   }
 
   setState(state) {
-    this.observers.forEach(cb => cb())
     this.state = state
+    this.observers.forEach(cb => cb())
   }
 }
 
 export function Study() {
-  const [count, increment] = useReducer(old => 1 + old, 0)
   const [pokemonQuery] = useState(() => new QueryClient(getPokemon))
+  const [count, increment] = useReducer(old => 1 + old, 0)
 
   return (
     <>
@@ -70,7 +83,9 @@ export function Study() {
           >
             Re-Mount
           </button>
-          <PokemonName key={`${count}-name`} />
+          <PokemonName key={`${count}-name`}>
+            <InnerName />
+          </PokemonName>
           <PokemonHeight key={`${count}-height`} />
         </div>
       </QueryProvider>
@@ -78,12 +93,13 @@ export function Study() {
   )
 }
 
-export function PokemonName({}) {
+export function PokemonName({ children }) {
   const query = useQuery()
-  const [, rerender] = useReducer(x => !x, false)
-  const { data, error, isLoading } = query.state
 
-  useEffect(() => query.subscribe(rerender), [])
+  const { data, error, isLoading } = useSyncExternalStore(
+    query.subscribe.bind(query),
+    query.getState.bind(query)
+  )
 
   if (isLoading) {
     return (
@@ -100,6 +116,7 @@ export function PokemonName({}) {
 
   return (
     <>
+      {children}
       <p className="bg-green-200 px-2 py-1 text-lg/none text-green-600">
         Component id: {Date.now()}
         <br />
@@ -111,9 +128,9 @@ export function PokemonName({}) {
 
 export function PokemonHeight({}) {
   const query = useQuery()
+
   const [, rerender] = useReducer(x => !x, false)
   const { data, error, isLoading } = query.state
-
   useEffect(() => query.subscribe(rerender), [])
 
   if (isLoading) {
@@ -138,4 +155,14 @@ export function PokemonHeight({}) {
       </p>
     </>
   )
+}
+
+function InnerName() {
+  return <RefetchButton>Deep Refetch</RefetchButton>
+}
+
+function RefetchButton({ children }) {
+  const query = useQuery()
+
+  return <button onClick={query.refetch.bind(query)}>{children}</button>
 }
