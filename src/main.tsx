@@ -4,7 +4,8 @@ import { PokemonPage, loader as pokemonPageLoader } from "@/pages/PokemonPage"
 import ReactDOM from "react-dom/client"
 import { RouterProvider, createBrowserRouter } from "react-router-dom"
 import "./index.css"
-import { Study } from "@/pages/Study"
+import { Study } from "@/pages/js/Study"
+// import { Study } from "@/pages/Study"
 
 const router = createBrowserRouter([
   {
@@ -23,7 +24,7 @@ const router = createBrowserRouter([
 ])
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <QueriesProvider>
-      <RouterProvider router={router} />
-    </QueriesProvider>
+  <QueriesProvider>
+    <RouterProvider router={router} />
+  </QueriesProvider>
 )

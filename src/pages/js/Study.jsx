@@ -1,12 +1,10 @@
 import { useEffect, useReducer, useRef, useState } from "react"
-import { IQuery, User, getUser, initQuery } from "./Study.utils"
+import { getUser, initQuery } from "./Study.utils"
 
-class QueryClient<TData> {
-  data: IQuery<TData>
-  observers: Function[] = []
-  runPromise: () => Promise<TData>
+class QueryClient {
+  observers = []
 
-  constructor(promise: () => Promise<TData>) {
+  constructor(promise) {
     this.data = initQuery()
     this.runPromise = promise
     void this.refetch()
@@ -34,45 +32,41 @@ class QueryClient<TData> {
     }
   }
 
-  subscribe(cb: Function) {
+  subscribe(cb) {
     this.observers.push(cb)
   }
 
-  setData(data: IQuery<TData>) {
+  setData(data) {
     this.observers.forEach(cb => cb())
     this.data = data
   }
 }
 
 export function Study() {
-  const [queryClient] = useState(() => new QueryClient(getUser))
-  const queryRef = useRef(queryClient)
+  const [userQueryClient] = useState(() => new QueryClient(getUser))
+  const userQueryRef = useRef(userQueryClient)
 
   return (
     <>
       <div className="flex gap-2">
         <button
           className="h-9 rounded-md bg-blue-800 px-4 text-sm text-white"
-          onClick={() => queryRef.current.refetch()}
+          onClick={() => userQueryRef.current.refetch()}
         >
           Refetch
         </button>
-        <GetData queryRef={queryRef} />
+        <GetData userQueryRef={userQueryRef} />
       </div>
     </>
   )
 }
 
-type GetDataProps = {
-  queryRef: React.MutableRefObject<QueryClient<User>>
-}
-
-export function GetData({ queryRef }: GetDataProps) {
+export function GetData({ userQueryRef }) {
   const [, rerender] = useReducer(x => !x, false)
-  const { data, error, isLoading } = queryRef.current.data
+  const { data, error, isLoading } = userQueryRef.current.data
 
   useEffect(() => {
-    queryRef.current.subscribe(rerender)
+    userQueryRef.current.subscribe(rerender)
   }, [])
 
   if (isLoading) {
@@ -85,11 +79,7 @@ export function GetData({ queryRef }: GetDataProps) {
   }
 
   if (error) {
-    return (
-      <div className="flex gap-2">
-        <strong className="text-red-500">{error.message}</strong>
-      </div>
-    )
+    return <strong className="text-red-500">{error.message}</strong>
   }
 
   return (
