@@ -1,23 +1,27 @@
 import { useEffect, useReducer, useState, useSyncExternalStore } from "react"
 import { QueryProvider, useQuery } from "./context"
 
-async function getPokemon() {
-  const response = await fetch("https://pokeapi.co/api/v2/pokemon/1")
-  if (Math.random() > 0.7) throw new Error("Expected error.")
-  return response.json()
+function getPokemon() {
+  return async function ({ signal }) {
+    const response = await fetch("https://pokeapi.co/api/v2/pokemon/1", {
+      signal,
+    })
+    if (Math.random() > 0.7) throw new Error("Expected error.")
+    return response.json()
+  }
 }
 
 class QueryClient {
+  abortController = new AbortController()
   observers = new Set()
-  promiseState = "iddle"
   state = {
     data: undefined,
     error: null,
     isLoading: false,
   }
 
-  constructor(promise) {
-    this.runPromise = promise
+  constructor(runPromise) {
+    this.runPromise = runPromise()
     void this.refetch()
   }
 
@@ -26,16 +30,17 @@ class QueryClient {
   }
 
   async refetch() {
-    if (this.promiseState !== "iddle") return
-
+    this.abortController.abort()
+    this.abortController = new AbortController()
     try {
-      this.promiseState = "pending"
       this.setState({
         data: undefined,
         error: null,
         isLoading: true,
       })
-      const data = await this.runPromise()
+      const data = await this.runPromise({
+        signal: this.abortController.signal,
+      })
       this.setState({
         data,
         error: null,
@@ -48,7 +53,6 @@ class QueryClient {
         isLoading: false,
       })
     } finally {
-      this.promiseState = "iddle"
     }
   }
 
@@ -66,6 +70,10 @@ class QueryClient {
 export function Study() {
   const [pokemonQuery] = useState(() => new QueryClient(getPokemon))
   const [count, increment] = useReducer(old => 1 + old, 0)
+
+  useEffect(() => {
+    Object.assign(window, { pokemonQuery })
+  }, [])
 
   return (
     <>
